@@ -48,3 +48,18 @@ func (mr *MockRepositoryInterfaceMockRecorder) GetTestById(ctx, input interface{
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTestById", reflect.TypeOf((*MockRepositoryInterface)(nil).GetTestById), ctx, input)
 }
+
+// Registration mocks base method.
+func (m *MockRepositoryInterface) Registration(ctx context.Context) (RegistrationOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Registration", ctx)
+	ret0, _ := ret[0].(RegistrationOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Registration indicates an expected call of Registration.
+func (mr *MockRepositoryInterfaceMockRecorder) Registration(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Registration", reflect.TypeOf((*MockRepositoryInterface)(nil).Registration), ctx)
+}
