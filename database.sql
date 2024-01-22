@@ -8,10 +8,10 @@
   */
 
 /** This is test table. Remove this table and replace with your own tables. */
-CREATE TABLE test (
-	id serial PRIMARY KEY,
-	name VARCHAR ( 50 ) UNIQUE NOT NULL,
+CREATE TABLE IF NOT EXISTS "users" (
+  "id" BIGSERIAL PRIMARY KEY,
+  "phone_number" INT UNIQUE NOT NULL,
+  "full_name" VARCHAR(50) NOT NULL,
+  "password_hash" VARCHAR(255) NOT NULL,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
-INSERT INTO test (name) VALUES ('test1');
-INSERT INTO test (name) VALUES ('test2');
