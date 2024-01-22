@@ -10,8 +10,8 @@
 /** This is test table. Remove this table and replace with your own tables. */
 CREATE TABLE IF NOT EXISTS "users" (
   "id" BIGSERIAL PRIMARY KEY,
-  "phone_number" INT UNIQUE NOT NULL,
-  "full_name" VARCHAR(50) NOT NULL,
-  "password_hash" VARCHAR(255) NOT NULL,
-  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  "phoneNumber" VARCHAR(13) UNIQUE NOT NULL,
+  "fullName" VARCHAR(60) NOT NULL,
+  "passwordHash" VARCHAR(64) NOT NULL,
+  "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
