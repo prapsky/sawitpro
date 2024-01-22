@@ -8,3 +8,7 @@ type GetTestByIdInput struct {
 type GetTestByIdOutput struct {
 	Name string
 }
+
+type RegistrationOutput struct {
+	UserId uint64
+}

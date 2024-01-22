@@ -1,18 +1,28 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/prapsky/sawitpro/generated"
+	"github.com/prapsky/sawitpro/common/errors"
+	"github.com/prapsky/sawitpro/common/response"
 )
 
-// This is just a test endpoint to get you started. Please delete this endpoint.
-// (GET /hello)
-func (s *Server) Hello(ctx echo.Context, params generated.HelloParams) error {
+// (POST /registration)
+func (s *Server) Registration(ctx echo.Context) error {
+	req := RegistrationRequest{}
+	if err := ctx.Bind(&req); err != nil {
+		return ctx.JSON(http.StatusBadRequest, response.NewError(errors.ErrInvalidRequestPayload))
+	}
 
-	var resp generated.HelloResponse
-	resp.Message = fmt.Sprintf("Hello User %d", params.Id)
-	return ctx.JSON(http.StatusOK, resp)
+	if errs := req.validate(); len(errs) != 0 {
+		return ctx.JSON(http.StatusBadRequest, response.NewError(errs...))
+	}
+
+	_, err := buildUserEntity(req)
+	if err != nil {
+		return ctx.JSON(http.StatusBadRequest, response.NewError(err))
+	}
+
+	return ctx.JSON(http.StatusOK, nil)
 }
