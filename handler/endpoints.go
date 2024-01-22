@@ -1,18 +1,27 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
-	"github.com/prapsky/sawitpro/generated"
 )
 
-// This is just a test endpoint to get you started. Please delete this endpoint.
-// (GET /hello)
-func (s *Server) Hello(ctx echo.Context, params generated.HelloParams) error {
+// (POST /registration)
+func (s *Server) Registration(ctx echo.Context) error {
+	req := new(RegistrationRequest)
+	if err := c.Bind(req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request payload"})
+	}
 
-	var resp generated.HelloResponse
-	resp.Message = fmt.Sprintf("Hello User %d", params.Id)
+	validate := validator.New()
+
+	validate.RegisterValidation("phone", validatePhoneNumber)
+	validate.RegisterValidation("password", validatePassword)
+
+	if err := validate.Struct(req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+
 	return ctx.JSON(http.StatusOK, resp)
 }
