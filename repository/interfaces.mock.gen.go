@@ -9,6 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	entity "github.com/prapsky/sawitpro/entity"
 )
 
 // MockRepositoryInterface is a mock of RepositoryInterface interface.
@@ -34,32 +35,17 @@ func (m *MockRepositoryInterface) EXPECT() *MockRepositoryInterfaceMockRecorder 
 	return m.recorder
 }
 
-// GetTestById mocks base method.
-func (m *MockRepositoryInterface) GetTestById(ctx context.Context, input GetTestByIdInput) (GetTestByIdOutput, error) {
+// Insert mocks base method.
+func (m *MockRepositoryInterface) Insert(ctx context.Context, input entity.User) (RegistrationOutput, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetTestById", ctx, input)
-	ret0, _ := ret[0].(GetTestByIdOutput)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetTestById indicates an expected call of GetTestById.
-func (mr *MockRepositoryInterfaceMockRecorder) GetTestById(ctx, input interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTestById", reflect.TypeOf((*MockRepositoryInterface)(nil).GetTestById), ctx, input)
-}
-
-// Registration mocks base method.
-func (m *MockRepositoryInterface) Registration(ctx context.Context) (RegistrationOutput, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Registration", ctx)
+	ret := m.ctrl.Call(m, "Insert", ctx, input)
 	ret0, _ := ret[0].(RegistrationOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Registration indicates an expected call of Registration.
-func (mr *MockRepositoryInterfaceMockRecorder) Registration(ctx interface{}) *gomock.Call {
+// Insert indicates an expected call of Insert.
+func (mr *MockRepositoryInterfaceMockRecorder) Insert(ctx, input interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Registration", reflect.TypeOf((*MockRepositoryInterface)(nil).Registration), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*MockRepositoryInterface)(nil).Insert), ctx, input)
 }

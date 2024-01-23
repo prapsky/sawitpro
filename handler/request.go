@@ -37,6 +37,23 @@ func (r RegistrationRequest) validatePhoneNumber() error {
 	return nil
 }
 
+func (r RegistrationRequest) validateFullName() error {
+	const (
+		minLength = 3
+		maxLength = 60
+	)
+
+	if len(r.FullName) < minLength {
+		return errors.ErrFullNameBelowMinimumCharacters
+	}
+
+	if len(r.FullName) > maxLength {
+		return errors.ErrFullNameAboveMaximumCharacters
+	}
+
+	return nil
+}
+
 func (r RegistrationRequest) validatePassword() error {
 	const (
 		minLength = 6
@@ -63,12 +80,16 @@ func (r RegistrationRequest) validatePassword() error {
 func (r RegistrationRequest) validate() []error {
 	errors := []error{}
 
-	if err := r.validatePhoneNumber(); err != nil {
-		errors = append(errors, err)
+	if errPhone := r.validatePhoneNumber(); errPhone != nil {
+		errors = append(errors, errPhone)
 	}
 
-	if err := r.validatePassword(); err != nil {
-		errors = append(errors, err)
+	if errName := r.validateFullName(); errName != nil {
+		errors = append(errors, errName)
+	}
+
+	if errPass := r.validatePassword(); errPass != nil {
+		errors = append(errors, errPass)
 	}
 
 	return errors
@@ -86,15 +107,15 @@ func comparePasswords(hashedPassword, password string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 }
 
-func buildUserEntity(request RegistrationRequest) (*entity.User, error) {
+func buildUserEntity(request RegistrationRequest) (entity.User, error) {
 	currentTime := time.Now()
 
 	passwordHash, err := hashPassword(request.Password)
 	if err != nil {
-		return nil, err
+		return entity.User{}, err
 	}
 
-	return &entity.User{
+	return entity.User{
 		PhoneNumber:  request.PhoneNumber,
 		FullName:     request.FullName,
 		PasswordHash: passwordHash,

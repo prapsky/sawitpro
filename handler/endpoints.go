@@ -10,6 +10,7 @@ import (
 
 // (POST /registration)
 func (s *Server) Registration(ctx echo.Context) error {
+	rCtx := ctx.Request().Context()
 	req := RegistrationRequest{}
 	if err := ctx.Bind(&req); err != nil {
 		return ctx.JSON(http.StatusBadRequest, response.NewError(errors.ErrInvalidRequestPayload))
@@ -19,10 +20,16 @@ func (s *Server) Registration(ctx echo.Context) error {
 		return ctx.JSON(http.StatusBadRequest, response.NewError(errs...))
 	}
 
-	_, err := buildUserEntity(req)
+	input, err := buildUserEntity(req)
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, response.NewError(err))
 	}
 
-	return ctx.JSON(http.StatusOK, nil)
+	res, err := s.Repository.Insert(rCtx, input)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, response.NewError(err))
+
+	}
+
+	return ctx.JSON(http.StatusOK, response.NewSuccess(res, nil))
 }

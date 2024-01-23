@@ -1,14 +1,5 @@
-# This is the OpenAPI specification for your service. It is used to generate the client code.
-# To generate the server code, use the Gradle task `openApiGenerate`. The 
-# generated code will be placed in `build/generate-resources/main`.
-#
-# We will evaluate you based on how well you design your API.
-# 1. How well it follows REST principles.
-# 2. How easy it is to understand and use.
-#
-# References
-# 1. https://swagger.io/specification/
-openapi: "3.0.0"
+---
+openapi: 3.0.0
 info:
   version: 1.0.0
   title: User Service
@@ -16,25 +7,30 @@ info:
     name: MIT
 servers:
   - url: http://localhost
+tags:
+  - name: User
+    description: Operations about user
 paths:
-  /hello:
-    get:
-      summary: This is just a test endpoint to get you started. Please delete this endpoint.
-      operationId: hello
-      parameters:
-        - name: id
-          in: query
-          required: true
-          schema:
-            type: integer
+  /registration:
+    post:
+      tags:
+        - User
+      summary: This endpoint is to register a new account.
+      operationId: registration
+      requestBody:
+        description: Created user object
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegistrationRequest'
       responses:
-        '200':
-          description: Test return
+        "200":
+          description: A successful response
           content:
-            application/json:    
+            application/json:
               schema:
-                $ref: "#/components/schemas/HelloResponse"
-        '404':
+                $ref: "#/components/schemas/RegistrationResponse"
+        "404":
           description: Not found
           content:
             application/json:
@@ -42,17 +38,39 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
 components:
   schemas:
-    HelloResponse:
+    RegistrationRequest:
       type: object
-      required:
-        - message
       properties:
-        message:
+        phone_number:
           type: string
+        full_name:
+          type: string
+        password:
+          type: string
+    RegistrationResponse:
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/RegistrationResponseData"
+        meta:
+          $ref: "#/components/schemas/RegistrationResponseMeta"
+    RegistrationResponseData:
+      type: object
+      properties:
+        user_id:
+          type: string
+    RegistrationResponseMeta:
+      type: object
     ErrorResponse:
       type: object
-      required:
-        - message
       properties:
-        message:
-          type: string
+        errors:
+          $ref: "#/components/schemas/ErrorResponseData"
+        meta:
+          $ref: "#/components/schemas/RegistrationResponseMeta"
+    ErrorResponseData:
+      type: array
+      items:
+        properties:
+          message:
+            type: string
