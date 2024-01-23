@@ -1,6 +1,11 @@
 package repository
 
-import "context"
+import (
+	"context"
+
+	"github.com/prapsky/sawitpro/entity"
+	queryBuilder "github.com/prapsky/sawitpro/repository/query_builder/user"
+)
 
 func (r *Repository) GetTestById(ctx context.Context, input GetTestByIdInput) (output GetTestByIdOutput, err error) {
 	err = r.Db.QueryRowContext(ctx, "SELECT name FROM test WHERE id = $1", input.Id).Scan(&output.Name)
@@ -8,4 +13,17 @@ func (r *Repository) GetTestById(ctx context.Context, input GetTestByIdInput) (o
 		return
 	}
 	return
+}
+
+func (r *Repository) Insert(ctx context.Context, input entity.User) (RegistrationOutput, error) {
+	builder := queryBuilder.NewInsertQueryBuilder(input).Build()
+
+	err := r.Db.QueryRowContext(ctx, builder.GetQuery(), builder.GetValues()...).Scan(&input.ID)
+	if err != nil {
+		return RegistrationOutput{}, err
+	}
+
+	return RegistrationOutput{
+		UserId: input.ID,
+	}, nil
 }

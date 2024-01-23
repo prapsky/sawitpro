@@ -8,36 +8,54 @@ import (
 	"compress/gzip"
 	"encoding/base64"
 	"fmt"
-	"net/http"
 	"net/url"
 	"path"
 	"strings"
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/labstack/echo/v4"
-	"github.com/oapi-codegen/runtime"
 )
 
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse struct {
-	Message string `json:"message"`
+	Errors *ErrorResponseData        `json:"errors,omitempty"`
+	Meta   *RegistrationResponseMeta `json:"meta,omitempty"`
 }
 
-// HelloResponse defines model for HelloResponse.
-type HelloResponse struct {
-	Message string `json:"message"`
+// ErrorResponseData defines model for ErrorResponseData.
+type ErrorResponseData = []struct {
+	Message *string `json:"message,omitempty"`
 }
 
-// HelloParams defines parameters for Hello.
-type HelloParams struct {
-	Id int `form:"id" json:"id"`
+// RegistrationRequest defines model for RegistrationRequest.
+type RegistrationRequest struct {
+	FullName    *string `json:"full_name,omitempty"`
+	Password    *string `json:"password,omitempty"`
+	PhoneNumber *string `json:"phone_number,omitempty"`
 }
+
+// RegistrationResponse defines model for RegistrationResponse.
+type RegistrationResponse struct {
+	Data *RegistrationResponseData `json:"data,omitempty"`
+	Meta *RegistrationResponseMeta `json:"meta,omitempty"`
+}
+
+// RegistrationResponseData defines model for RegistrationResponseData.
+type RegistrationResponseData struct {
+	UserId *string `json:"user_id,omitempty"`
+}
+
+// RegistrationResponseMeta defines model for RegistrationResponseMeta.
+type RegistrationResponseMeta = map[string]interface{}
+
+// RegistrationJSONRequestBody defines body for Registration for application/json ContentType.
+type RegistrationJSONRequestBody = RegistrationRequest
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
-	// This is just a test endpoint to get you started. Please delete this endpoint.
-	// (GET /hello)
-	Hello(ctx echo.Context, params HelloParams) error
+	// This endpoint is to register a new account.
+	// (POST /registration)
+	Registration(ctx echo.Context) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -45,21 +63,12 @@ type ServerInterfaceWrapper struct {
 	Handler ServerInterface
 }
 
-// Hello converts echo context to params.
-func (w *ServerInterfaceWrapper) Hello(ctx echo.Context) error {
+// Registration converts echo context to params.
+func (w *ServerInterfaceWrapper) Registration(ctx echo.Context) error {
 	var err error
 
-	// Parameter object where we will unmarshal all parameters from the context
-	var params HelloParams
-	// ------------- Required query parameter "id" -------------
-
-	err = runtime.BindQueryParameter("form", true, true, "id", ctx.QueryParams(), &params.Id)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
-	}
-
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.Hello(ctx, params)
+	err = w.Handler.Registration(ctx)
 	return err
 }
 
@@ -91,20 +100,22 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
-	router.GET(baseURL+"/hello", wrapper.Hello)
+	router.POST(baseURL+"/registration", wrapper.Registration)
 
 }
 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/7RSTY/TMBD9K9bAMWoK7Cl3JPYAQrCcVj2Y5DVx5djemUmlqsp/R+O20JU4wsmO52Xe",
-	"x8yZ+jyXnJBUqDuT9BNmX68fmTN/g5ScBPZQOBewBtTyDBE/1oKeCqgjUQ5ppHVtiPGyBMZA3fNv4K65",
-	"AfPPA3qltaFPiDH/Vw5DhrTP1iOGHlee5GdDfX58MhkaNNrnDwG77+Bj6EENHcEScqKO3m22m60hc0Hy",
-	"JVBHH+pTQ8XrVMW2k5mx2wi1w5x4DTk9DtRdrFY8+xkKFuqezxSs/csCPlFzUxUGurenvKC5TuYuipAU",
-	"I5jWdWfoS4ZVyfvt1o4+J0WqUnwpMfRVTHsQs3S+a/iWsaeO3rR/dqG9LkL7ekI1zgHScyh6ieYJoo6h",
-	"CycL6GH78M+4X2/gX7i/ZHX7vKShLoQs8+z5ZJqmIC6IOyyizjs1iUhDySGp0+xGqDvlxYl6Vgwb9zXC",
-	"C9yACIVT+/2G31yIBXy8zWzhSB1NqqVr25h7H6csSutu/RUAAP//x+wl0k8DAAA=",
+	"H4sIAAAAAAAC/7RUTW/bMAz9KwK3o1FnW0+67evQQzeg605FECgyE6uwJY2kWgSB//sg2WmbxsOwj94c",
+	"kXx8fO8he7Chj8GjFwa9B7Yt9qZ8fiYKdIUcg2fMD5FCRBKHpYy5XL5eE25Aw6v6EaqecOojkE9GDAwV",
+	"9Cjmd4NXuHUsZMQFf5i/zHPDUIHsIoKGsL5FKxnxdI3egxPs+ZR4j8xmWy6acFjI+S0MT6ANkdll5GMe",
+	"PxKynEJuUtetvOnnQCuIhvk+UDNfbIPHlU/9GmmO0syxc9KccmrM34n8cib9ctsJ98RIK9f8gx6XE/tn",
+	"zXne+U3Ipc5ZnJQbrYPLi+uMJ066/PM7I6lvSHfOIlRwh8QueNDw5mxxtsidIaI30YGGd+Upey1tOaGm",
+	"J6zKhWFMTr6zPF40oI+4QwU0JuxDaHa51wYv6MuYibFztvTVtzxCjjb8mUljgosQDbIlF0eC8JHQCDYq",
+	"a68exaVJ0HLU28XihWhNKZ7h9V5xshaZN6lT9NBYwfni/L+ROf6vm2HxJYjahOSbEkFOfW9oBxquW8cK",
+	"fROD86IcKwlqdB5JGeXxXhlrQ/JyBhWI2TLom5IsWJY1jJSDBfpmD4k60NCKRF3XXbCma3NohuXD5P4Z",
+	"ra+HMLEy65CkuAfVIdBlz7AcfgYAAP//kpMhZeYFAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

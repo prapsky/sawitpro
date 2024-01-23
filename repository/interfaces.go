@@ -4,9 +4,12 @@
 // interfaces using mockgen. See the Makefile for more information.
 package repository
 
-import "context"
+import (
+	"context"
+
+	"github.com/prapsky/sawitpro/entity"
+)
 
 type RepositoryInterface interface {
-	GetTestById(ctx context.Context, input GetTestByIdInput) (output GetTestByIdOutput, err error)
-	Registration(ctx context.Context) (output RegistrationOutput, err error)
+	Insert(ctx context.Context, input entity.User) (RegistrationOutput, error)
 }
