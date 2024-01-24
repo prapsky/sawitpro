@@ -11,25 +11,25 @@ tags:
   - name: User
     description: Operations about user
 paths:
-  /registration:
+  /register:
     post:
       tags:
         - User
       summary: This endpoint is to register a new account.
-      operationId: registration
+      operationId: register
       requestBody:
         description: Created user object
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RegistrationRequest'
+              $ref: '#/components/schemas/RegisterRequest'
       responses:
         "200":
           description: A successful response
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/RegistrationResponse"
+                $ref: "#/components/schemas/RegisterResponse"
         "404":
           description: Not found
           content:
@@ -38,7 +38,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
 components:
   schemas:
-    RegistrationRequest:
+    RegisterRequest:
       type: object
       properties:
         phone_number:
@@ -47,30 +47,22 @@ components:
           type: string
         password:
           type: string
-    RegistrationResponse:
+    RegisterResponse:
       type: object
       properties:
         data:
-          $ref: "#/components/schemas/RegistrationResponseData"
-        meta:
-          $ref: "#/components/schemas/RegistrationResponseMeta"
-    RegistrationResponseData:
+          $ref: "#/components/schemas/RegisterResponseData"
+    RegisterResponseData:
       type: object
       properties:
-        user_id:
-          type: string
-    RegistrationResponseMeta:
-      type: object
+        userID:
+          type: integer
+          format: uint64
+          example: 20
     ErrorResponse:
       type: object
+      nullable: true
       properties:
-        errors:
-          $ref: "#/components/schemas/ErrorResponseData"
-        meta:
-          $ref: "#/components/schemas/RegistrationResponseMeta"
-    ErrorResponseData:
-      type: array
-      items:
-        properties:
-          message:
-            type: string
+        message:
+          type: string
+          example: Phone number is below a minimum of 10 characters.

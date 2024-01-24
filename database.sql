@@ -10,7 +10,7 @@
 /** This is test table. Remove this table and replace with your own tables. */
 CREATE TABLE IF NOT EXISTS "users" (
   "id" BIGSERIAL PRIMARY KEY,
-  "phone_number" VARCHAR(13) UNIQUE NOT NULL,
+  "phone_number" VARCHAR(16) UNIQUE NOT NULL,
   "full_name" VARCHAR(60) NOT NULL,
   "password_hash" VARCHAR(255) NOT NULL,
   "created_at" TIMESTAMP DEFAULT 'now()'::TIMESTAMP WITHOUT TIME ZONE NOT NULL

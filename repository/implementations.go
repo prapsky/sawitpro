@@ -8,22 +8,21 @@ import (
 )
 
 func (r *Repository) GetTestById(ctx context.Context, input GetTestByIdInput) (output GetTestByIdOutput, err error) {
-	err = r.Db.QueryRowContext(ctx, "SELECT name FROM test WHERE id = $1", input.Id).Scan(&output.Name)
+	err = r.db.QueryRowContext(ctx, "SELECT name FROM test WHERE id = $1", input.Id).Scan(&output.Name)
 	if err != nil {
 		return
 	}
 	return
 }
 
-func (r *Repository) Insert(ctx context.Context, input entity.User) (RegistrationOutput, error) {
+func (r *Repository) Insert(ctx context.Context, input entity.User) (uint64, error) {
 	builder := queryBuilder.NewInsertQueryBuilder(input).Build()
 
-	err := r.Db.QueryRowContext(ctx, builder.GetQuery(), builder.GetValues()...).Scan(&input.ID)
+	id := uint64(0)
+	err := r.db.QueryRowContext(ctx, builder.GetQuery(), builder.GetValues()...).Scan(&id)
 	if err != nil {
-		return RegistrationOutput{}, err
+		return 0, err
 	}
 
-	return RegistrationOutput{
-		UserId: input.ID,
-	}, nil
+	return id, nil
 }

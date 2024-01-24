@@ -6,6 +6,7 @@ import (
 	"github.com/prapsky/sawitpro/generated"
 	"github.com/prapsky/sawitpro/handler"
 	"github.com/prapsky/sawitpro/repository"
+	"github.com/prapsky/sawitpro/service"
 
 	"github.com/labstack/echo/v4"
 )
@@ -20,14 +21,10 @@ func main() {
 }
 
 func newServer() *handler.Server {
-	dbDsn := os.Getenv("DATABASE_URL")
-	var repo repository.RepositoryInterface = repository.NewRepository(repository.NewRepositoryOptions{
-		Dsn: dbDsn,
+	repository := repository.NewRepository(os.Getenv("DATABASE_URL"))
+	service := service.NewUserService(service.UserServiceOptions{
+		Repository: repository,
 	})
 
-	opts := handler.NewServerOptions{
-		Repository: repo,
-	}
-
-	return handler.NewServer(opts)
+	return handler.NewServer(service)
 }

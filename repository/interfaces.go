@@ -11,5 +11,5 @@ import (
 )
 
 type RepositoryInterface interface {
-	Insert(ctx context.Context, input entity.User) (RegistrationOutput, error)
+	Insert(ctx context.Context, input entity.User) (uint64, error)
 }

@@ -1,15 +1,15 @@
 package handler
 
-import "github.com/prapsky/sawitpro/repository"
+import (
+	"github.com/prapsky/sawitpro/service"
+)
 
 type Server struct {
-	Repository repository.RepositoryInterface
+	service service.Service
 }
 
-type NewServerOptions struct {
-	Repository repository.RepositoryInterface
-}
-
-func NewServer(opts NewServerOptions) *Server {
-	return &Server{}
+func NewServer(service service.Service) *Server {
+	return &Server{
+		service: service,
+	}
 }

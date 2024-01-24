@@ -52,3 +52,16 @@ To run test, run the following command:
 ```
 make test
 ```
+
+## View database
+
+Access the container
+
+```
+docker exec -it sawitpro-db-1 bash
+```
+
+Inside container
+```
+psql -U postgres -d database
+```

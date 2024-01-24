@@ -18,44 +18,34 @@ import (
 
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse struct {
-	Errors *ErrorResponseData        `json:"errors,omitempty"`
-	Meta   *RegistrationResponseMeta `json:"meta,omitempty"`
-}
-
-// ErrorResponseData defines model for ErrorResponseData.
-type ErrorResponseData = []struct {
 	Message *string `json:"message,omitempty"`
 }
 
-// RegistrationRequest defines model for RegistrationRequest.
-type RegistrationRequest struct {
+// RegisterRequest defines model for RegisterRequest.
+type RegisterRequest struct {
 	FullName    *string `json:"full_name,omitempty"`
 	Password    *string `json:"password,omitempty"`
 	PhoneNumber *string `json:"phone_number,omitempty"`
 }
 
-// RegistrationResponse defines model for RegistrationResponse.
-type RegistrationResponse struct {
-	Data *RegistrationResponseData `json:"data,omitempty"`
-	Meta *RegistrationResponseMeta `json:"meta,omitempty"`
+// RegisterResponse defines model for RegisterResponse.
+type RegisterResponse struct {
+	Data *RegisterResponseData `json:"data,omitempty"`
 }
 
-// RegistrationResponseData defines model for RegistrationResponseData.
-type RegistrationResponseData struct {
-	UserId *string `json:"user_id,omitempty"`
+// RegisterResponseData defines model for RegisterResponseData.
+type RegisterResponseData struct {
+	UserID *uint64 `json:"userID,omitempty"`
 }
 
-// RegistrationResponseMeta defines model for RegistrationResponseMeta.
-type RegistrationResponseMeta = map[string]interface{}
-
-// RegistrationJSONRequestBody defines body for Registration for application/json ContentType.
-type RegistrationJSONRequestBody = RegistrationRequest
+// RegisterJSONRequestBody defines body for Register for application/json ContentType.
+type RegisterJSONRequestBody = RegisterRequest
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// This endpoint is to register a new account.
-	// (POST /registration)
-	Registration(ctx echo.Context) error
+	// (POST /register)
+	Register(ctx echo.Context) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -63,12 +53,12 @@ type ServerInterfaceWrapper struct {
 	Handler ServerInterface
 }
 
-// Registration converts echo context to params.
-func (w *ServerInterfaceWrapper) Registration(ctx echo.Context) error {
+// Register converts echo context to params.
+func (w *ServerInterfaceWrapper) Register(ctx echo.Context) error {
 	var err error
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.Registration(ctx)
+	err = w.Handler.Register(ctx)
 	return err
 }
 
@@ -100,22 +90,23 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
-	router.POST(baseURL+"/registration", wrapper.Registration)
+	router.POST(baseURL+"/register", wrapper.Register)
 
 }
 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/7RUTW/bMAz9KwK3o1FnW0+67evQQzeg605FECgyE6uwJY2kWgSB//sg2WmbxsOwj94c",
-	"kXx8fO8he7Chj8GjFwa9B7Yt9qZ8fiYKdIUcg2fMD5FCRBKHpYy5XL5eE25Aw6v6EaqecOojkE9GDAwV",
-	"9Cjmd4NXuHUsZMQFf5i/zHPDUIHsIoKGsL5FKxnxdI3egxPs+ZR4j8xmWy6acFjI+S0MT6ANkdll5GMe",
-	"PxKynEJuUtetvOnnQCuIhvk+UDNfbIPHlU/9GmmO0syxc9KccmrM34n8cib9ctsJ98RIK9f8gx6XE/tn",
-	"zXne+U3Ipc5ZnJQbrYPLi+uMJ066/PM7I6lvSHfOIlRwh8QueNDw5mxxtsidIaI30YGGd+Upey1tOaGm",
-	"J6zKhWFMTr6zPF40oI+4QwU0JuxDaHa51wYv6MuYibFztvTVtzxCjjb8mUljgosQDbIlF0eC8JHQCDYq",
-	"a68exaVJ0HLU28XihWhNKZ7h9V5xshaZN6lT9NBYwfni/L+ROf6vm2HxJYjahOSbEkFOfW9oBxquW8cK",
-	"fROD86IcKwlqdB5JGeXxXhlrQ/JyBhWI2TLom5IsWJY1jJSDBfpmD4k60NCKRF3XXbCma3NohuXD5P4Z",
-	"ra+HMLEy65CkuAfVIdBlz7AcfgYAAP//kpMhZeYFAAA=",
+	"H4sIAAAAAAAC/7RUTW/bMAz9KwK3o1G7XbGDb9u6Qw/7QNediqJQZDpWYYsaSbUrAv/3QcoXEgRDD9sp",
+	"AU3yvcf3oBU4miIFDCrQrkDcgJMtfz8zE9+gRAqCuRDSONrFiNAqJ6wgMkVk9VjaJxSxy9KIv+0Ucx98",
+	"HyigCWlaIBsvZoEjPRtrJh/8lCZDvTlvjBssW6fIcgYV6EvMo6LswxLmeVehxSM6hbmCG1x6UeQb/JVQ",
+	"NGMekunTOD4EOxU6RwsriFbkmbg7/TFTflhTPtHwdzr7Yx3y6aza/PuWsYcW3tT7q9ebk9fHW67yzKvw",
+	"rjbbDzGTIF9fHfhx0VTQE09WoYXkg76/3B/cB8Ul8inIXPKhp7xs9A63gSgHhi/Xt5mVei2e/xRk8wP5",
+	"yTuECp6QxVOAFs7PmrMmd1LEYKOHFt6VUnZEh0K65o22oofW3mZVVj2F6w7anXqogNf+f6TuJfc5Coqh",
+	"jNgYR+/KUP0oGX6b7dfbsM5WEd+hOPZR10I+MVrFzuQLm70tvLGjCLlomv9AaZOvE5w+GEnOoUifRsO7",
+	"xgoum8t/RuTwSTjB4iup6SmFrqRI0jRZfoEWbgcvBkMXyQfND4GS2TptrAn4bKxzlIKWF8AuBdq7kiS4",
+	"LzCCnIME7d0KEo/QwqAa27oeydlxyEGZ73eTqyNa37YBEmMXlLQ4B9U2wAVnvp//BAAA///ey8E3DQUA",
+	"AA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

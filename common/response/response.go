@@ -1,5 +1,9 @@
 package response
 
+import (
+	"github.com/prapsky/sawitpro/generated"
+)
+
 type Success struct {
 	Data interface{} `json:"data"`
 	Meta interface{} `json:"meta"`
@@ -19,9 +23,9 @@ func NewSuccess(data, meta interface{}) *Success {
 	}
 }
 
-func NewError(errors ...error) *Error {
-	return &Error{
-		Errors: errors,
-		Meta:   nil,
+func NewError(err error) generated.ErrorResponse {
+	msg := err.Error()
+	return generated.ErrorResponse{
+		Message: &msg,
 	}
 }
