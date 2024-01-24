@@ -18,7 +18,7 @@ init: generate
 test:
 	go test -short -coverprofile coverage.out -v ./...
 
-generate: generated generate_mocks
+generate: generated generate_mocks generate_service_mocks
 
 generated: api.yml
 	@echo "Generating files..."
@@ -30,5 +30,13 @@ INTERFACES_GEN_GO_FILES := $(INTERFACES_GO_FILES:%.go=%.mock.gen.go)
 
 generate_mocks: $(INTERFACES_GEN_GO_FILES)
 $(INTERFACES_GEN_GO_FILES): %.mock.gen.go: %.go
+	@echo "Generating mocks $@ for $<"
+	mockgen -source=$< -destination=$@ -package=$(shell basename $(dir $<))
+
+SERVICE_GO_FILES := $(shell find service -name "service.go")
+SERVICE_GEN_GO_FILES := $(SERVICE_GO_FILES:%.go=%.mock.gen.go)
+
+generate_service_mocks: $(SERVICE_GEN_GO_FILES)
+$(SERVICE_GEN_GO_FILES): %.mock.gen.go: %.go
 	@echo "Generating mocks $@ for $<"
 	mockgen -source=$< -destination=$@ -package=$(shell basename $(dir $<))

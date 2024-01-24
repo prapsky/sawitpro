@@ -2,10 +2,9 @@ package handler
 
 import (
 	"regexp"
-	"time"
 
 	"github.com/prapsky/sawitpro/common/errors"
-	"github.com/prapsky/sawitpro/entity"
+	"github.com/prapsky/sawitpro/service"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -18,7 +17,7 @@ type RegistrationRequest struct {
 func (r RegistrationRequest) validatePhoneNumber() error {
 	const (
 		minLength   = 10
-		maxLength   = 13
+		maxLength   = 16
 		idCodeRegex = `^\+62`
 	)
 
@@ -77,22 +76,20 @@ func (r RegistrationRequest) validatePassword() error {
 	return nil
 }
 
-func (r RegistrationRequest) validate() []error {
-	errors := []error{}
-
+func (r RegistrationRequest) validate() error {
 	if errPhone := r.validatePhoneNumber(); errPhone != nil {
-		errors = append(errors, errPhone)
+		return errPhone
 	}
 
 	if errName := r.validateFullName(); errName != nil {
-		errors = append(errors, errName)
+		return errName
 	}
 
 	if errPass := r.validatePassword(); errPass != nil {
-		errors = append(errors, errPass)
+		return errPass
 	}
 
-	return errors
+	return nil
 }
 
 func hashPassword(password string) (string, error) {
@@ -107,18 +104,15 @@ func comparePasswords(hashedPassword, password string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 }
 
-func buildUserEntity(request RegistrationRequest) (entity.User, error) {
-	currentTime := time.Now()
-
-	passwordHash, err := hashPassword(request.Password)
+func (r RegistrationRequest) registerInput() (service.RegisterInput, error) {
+	passwordHash, err := hashPassword(r.Password)
 	if err != nil {
-		return entity.User{}, err
+		return service.RegisterInput{}, err
 	}
 
-	return entity.User{
-		PhoneNumber:  request.PhoneNumber,
-		FullName:     request.FullName,
+	return service.RegisterInput{
+		PhoneNumber:  r.PhoneNumber,
+		FullName:     r.FullName,
 		PasswordHash: passwordHash,
-		CreatedAt:    currentTime,
 	}, nil
 }

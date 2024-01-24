@@ -36,10 +36,10 @@ func (m *MockRepositoryInterface) EXPECT() *MockRepositoryInterfaceMockRecorder 
 }
 
 // Insert mocks base method.
-func (m *MockRepositoryInterface) Insert(ctx context.Context, input entity.User) (RegistrationOutput, error) {
+func (m *MockRepositoryInterface) Insert(ctx context.Context, input entity.User) (uint64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Insert", ctx, input)
-	ret0, _ := ret[0].(RegistrationOutput)
+	ret0, _ := ret[0].(uint64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

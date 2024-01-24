@@ -13,6 +13,7 @@ import (
 
 	"github.com/prapsky/sawitpro/common/validator"
 	"github.com/prapsky/sawitpro/handler"
+	"github.com/prapsky/sawitpro/service"
 )
 
 type Executor struct {
@@ -43,7 +44,7 @@ func TestRegistration(t *testing.T) {
 
 		ret := &RequestContext{ctx, rec}
 		exec := buildExecutor(ctrl)
-		err := exec.handler.Registration(ret.context)
+		err := exec.handler.Register(ret.context)
 
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
 		assert.Nil(t, err)
@@ -51,8 +52,8 @@ func TestRegistration(t *testing.T) {
 }
 
 func buildExecutor(ctrl *gomock.Controller) *Executor {
-	so := handler.NewServerOptions{}
-	h := handler.NewServer(so)
+	s := service.NewMockService(ctrl)
+	h := handler.NewServer(s)
 
 	return &Executor{
 		handler: h,

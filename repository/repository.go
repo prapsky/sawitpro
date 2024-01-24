@@ -8,19 +8,16 @@ import (
 )
 
 type Repository struct {
-	Db *sql.DB
+	db *sql.DB
 }
 
-type NewRepositoryOptions struct {
-	Dsn string
-}
-
-func NewRepository(opts NewRepositoryOptions) *Repository {
-	db, err := sql.Open("postgres", opts.Dsn)
+func NewRepository(dsn string) *Repository {
+	db, err := sql.Open("postgres", dsn)
 	if err != nil {
 		panic(err)
 	}
+
 	return &Repository{
-		Db: db,
+		db: db,
 	}
 }
