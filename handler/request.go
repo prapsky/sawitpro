@@ -8,13 +8,18 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type RegistrationRequest struct {
-	PhoneNumber string `json:"phoneNumber" form:"phoneNumber" validate:"required,min=10,max=13,phone"`
-	FullName    string `json:"fullName" form:"fullName" validate:"required,min=3,max=60"`
-	Password    string `json:"password" form:"password" validate:"required,min=6,max=64,password"`
+type RegisterRequest struct {
+	PhoneNumber string `json:"phoneNumber" form:"phoneNumber" validate:"required"`
+	FullName    string `json:"fullName" form:"fullName" validate:"required"`
+	Password    string `json:"password" form:"password" validate:"required"`
 }
 
-func (r RegistrationRequest) validatePhoneNumber() error {
+type LoginRequest struct {
+	PhoneNumber string `json:"phoneNumber" form:"phoneNumber" validate:"required"`
+	Password    string `json:"password" form:"password" validate:"required"`
+}
+
+func (r RegisterRequest) validatePhoneNumber() error {
 	const (
 		minLength   = 10
 		maxLength   = 16
@@ -36,7 +41,7 @@ func (r RegistrationRequest) validatePhoneNumber() error {
 	return nil
 }
 
-func (r RegistrationRequest) validateFullName() error {
+func (r RegisterRequest) validateFullName() error {
 	const (
 		minLength = 3
 		maxLength = 60
@@ -53,7 +58,7 @@ func (r RegistrationRequest) validateFullName() error {
 	return nil
 }
 
-func (r RegistrationRequest) validatePassword() error {
+func (r RegisterRequest) validatePassword() error {
 	const (
 		minLength = 6
 		maxLength = 64
@@ -76,7 +81,7 @@ func (r RegistrationRequest) validatePassword() error {
 	return nil
 }
 
-func (r RegistrationRequest) validate() error {
+func (r RegisterRequest) validate() error {
 	if errPhone := r.validatePhoneNumber(); errPhone != nil {
 		return errPhone
 	}
@@ -100,11 +105,7 @@ func hashPassword(password string) (string, error) {
 	return string(hashedPassword), nil
 }
 
-func comparePasswords(hashedPassword, password string) error {
-	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
-}
-
-func (r RegistrationRequest) registerInput() (service.RegisterInput, error) {
+func (r RegisterRequest) registerInput() (service.RegisterInput, error) {
 	passwordHash, err := hashPassword(r.Password)
 	if err != nil {
 		return service.RegisterInput{}, err
@@ -115,4 +116,11 @@ func (r RegistrationRequest) registerInput() (service.RegisterInput, error) {
 		FullName:     r.FullName,
 		PasswordHash: passwordHash,
 	}, nil
+}
+
+func (l LoginRequest) loginInput() service.LoginInput {
+	return service.LoginInput{
+		PhoneNumber: l.PhoneNumber,
+		Password:    l.Password,
+	}
 }

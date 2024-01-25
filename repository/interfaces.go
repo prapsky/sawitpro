@@ -12,4 +12,7 @@ import (
 
 type RepositoryInterface interface {
 	Insert(ctx context.Context, input entity.User) (uint64, error)
+	FindByPhoneNumber(ctx context.Context, phoneNumber string) (*entity.User, error)
+	UpdateSuccessfulLogins(ctx context.Context, input entity.User) error
+	InsertLoginAttempts(ctx context.Context, input entity.LoginAttempt) error
 }

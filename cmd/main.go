@@ -24,6 +24,10 @@ func newServer() *handler.Server {
 	repository := repository.NewRepository(os.Getenv("DATABASE_URL"))
 	service := service.NewUserService(service.UserServiceOptions{
 		Repository: repository,
+		AuthService: service.NewJwtAuthService(service.JwtAuthServiceOptions{
+			PrivateKey: os.Getenv("PRIVATE_KEY"),
+			PublicKey:  os.Getenv("PUBLIC_KEY"),
+		}),
 	})
 
 	return handler.NewServer(service)

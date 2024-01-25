@@ -21,11 +21,28 @@ type ErrorResponse struct {
 	Message *string `json:"message,omitempty"`
 }
 
+// LoginRequest defines model for LoginRequest.
+type LoginRequest struct {
+	Password    *string `json:"password,omitempty"`
+	PhoneNumber *string `json:"phoneNumber,omitempty"`
+}
+
+// LoginResponse defines model for LoginResponse.
+type LoginResponse struct {
+	Data *LoginResponseData `json:"data,omitempty"`
+}
+
+// LoginResponseData defines model for LoginResponseData.
+type LoginResponseData struct {
+	Token  *string `json:"token,omitempty"`
+	UserID *uint64 `json:"userID,omitempty"`
+}
+
 // RegisterRequest defines model for RegisterRequest.
 type RegisterRequest struct {
-	FullName    *string `json:"full_name,omitempty"`
+	FullName    *string `json:"fullName,omitempty"`
 	Password    *string `json:"password,omitempty"`
-	PhoneNumber *string `json:"phone_number,omitempty"`
+	PhoneNumber *string `json:"phoneNumber,omitempty"`
 }
 
 // RegisterResponse defines model for RegisterResponse.
@@ -38,11 +55,17 @@ type RegisterResponseData struct {
 	UserID *uint64 `json:"userID,omitempty"`
 }
 
+// LoginJSONRequestBody defines body for Login for application/json ContentType.
+type LoginJSONRequestBody = LoginRequest
+
 // RegisterJSONRequestBody defines body for Register for application/json ContentType.
 type RegisterJSONRequestBody = RegisterRequest
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// This endpoint is to login to an account.
+	// (POST /login)
+	Login(ctx echo.Context) error
 	// This endpoint is to register a new account.
 	// (POST /register)
 	Register(ctx echo.Context) error
@@ -51,6 +74,15 @@ type ServerInterface interface {
 // ServerInterfaceWrapper converts echo contexts to parameters.
 type ServerInterfaceWrapper struct {
 	Handler ServerInterface
+}
+
+// Login converts echo context to params.
+func (w *ServerInterfaceWrapper) Login(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.Login(ctx)
+	return err
 }
 
 // Register converts echo context to params.
@@ -90,6 +122,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
+	router.POST(baseURL+"/login", wrapper.Login)
 	router.POST(baseURL+"/register", wrapper.Register)
 
 }
@@ -97,16 +130,16 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/7RUTW/bMAz9KwK3o1G7XbGDb9u6Qw/7QNediqJQZDpWYYsaSbUrAv/3QcoXEgRDD9sp",
-	"AU3yvcf3oBU4miIFDCrQrkDcgJMtfz8zE9+gRAqCuRDSONrFiNAqJ6wgMkVk9VjaJxSxy9KIv+0Ucx98",
-	"HyigCWlaIBsvZoEjPRtrJh/8lCZDvTlvjBssW6fIcgYV6EvMo6LswxLmeVehxSM6hbmCG1x6UeQb/JVQ",
-	"NGMekunTOD4EOxU6RwsriFbkmbg7/TFTflhTPtHwdzr7Yx3y6aza/PuWsYcW3tT7q9ebk9fHW67yzKvw",
-	"rjbbDzGTIF9fHfhx0VTQE09WoYXkg76/3B/cB8Ul8inIXPKhp7xs9A63gSgHhi/Xt5mVei2e/xRk8wP5",
-	"yTuECp6QxVOAFs7PmrMmd1LEYKOHFt6VUnZEh0K65o22oofW3mZVVj2F6w7anXqogNf+f6TuJfc5Coqh",
-	"jNgYR+/KUP0oGX6b7dfbsM5WEd+hOPZR10I+MVrFzuQLm70tvLGjCLlomv9AaZOvE5w+GEnOoUifRsO7",
-	"xgoum8t/RuTwSTjB4iup6SmFrqRI0jRZfoEWbgcvBkMXyQfND4GS2TptrAn4bKxzlIKWF8AuBdq7kiS4",
-	"LzCCnIME7d0KEo/QwqAa27oeydlxyEGZ73eTqyNa37YBEmMXlLQ4B9U2wAVnvp//BAAA///ey8E3DQUA",
-	"AA==",
+	"H4sIAAAAAAAC/9xUT0/cPhD9Ktb8fseIbAH1kFsRPSC1VKL0hDh4ndmNaWK74zEUrfLdq3H2j7JkaaUu",
+	"l54w3vGbN++9zAqM74J36DhCtYJoGux0Pn4k8nSDMXgXUS5cals9bxEqpoQFBPIBiS3m8g5j1MtciD91",
+	"F6RuwIAC+DnIv5HJuiX0/fbGzx/QMPQFfPJL627wR8LIAjJGDzrGJ0+1nPfACgiNd3idujnSxO+vNNvN",
+	"Nu5Wa9by93/CBVTwX7kTqVwrVI4gLuXB7ztdrnHH3dh/RzfW7d3pmZ6bl8IVkCLS1eWo+nRWwMJTpxkq",
+	"SNbx+/PdS+sYl0jT5G5waSMjHZR9kdr2Wnc4LftxPdmR+Rtb9lEOOzNZ+aLnEfWWK+sWXsBaa3DzWWV9",
+	"4fPVrbBiyzkB3yKS+or0aA1CAY9I0Xon0TiZncyk0gd0Olio4CxfiSHcZNJlK6nLw/jBVhlJs/XuqoZq",
+	"CCUUQIPvF75+liLjHaPL9TqE1pr8onyI3u12wx9+F0Og8sw1RkM28MB/6N1L80H3zPh0Njs2g3WKJih8",
+	"UDEZgzEuUqtoW1jA+RFZjNfnBIsLXSva6lRATF2n6RkquG1sVOjq4K1jZaNir7KjctBOaWN8cnwiqdPL",
+	"CNVdjgvcC0xJ61wftn+T/DdKwP5WmZh9y+Atc/BiofwjUdgYrLRy+PRaGgQKSXYHVHcrSNRCBQ1zqMqy",
+	"9Ua3jeSjv9++XO0R+7LJTVR67hMrWYdQbHZW7tPf978CAAD//2AZWw9GCAAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

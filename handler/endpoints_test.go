@@ -30,7 +30,7 @@ func TestRegistration(t *testing.T) {
 	defer ctrl.Finish()
 
 	t.Run("bad request", func(t *testing.T) {
-		request := handler.RegistrationRequest{}
+		request := handler.RegisterRequest{}
 		reqByte, _ := json.Marshal(&request)
 
 		url := "/registration"

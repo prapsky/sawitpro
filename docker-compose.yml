@@ -5,6 +5,8 @@ services:
       - "8080:1323"
     environment:
       DATABASE_URL: postgres://postgres:postgres@db:5432/database?sslmode=disable
+      PRIVATE_KEY: "-----BEGIN RSA PRIVATE KEY-----\nMIICWwIBAAKBgHNJkk4KFeUrqs68yjEyadKwMZGOyOMojdWIl3Z+VYJVlu9ATVgh\nsKiMTpzuCKFSZGlOKeE+QeLw4eH7Lrbm3NUhOBCFd99rESFiakleV18D9O58r3jv\ntwEOQw1ifcA9i+oBJWXwzjNcMKkwaXbFTIu+Dpx9MpfibDEAE7Ph2Co/AgMBAAEC\ngYANwoQxyEZguduDHUlMoeW7fcgMxWv4oMh86faZ7+4oxipjl9sjX7IEC+r+E/L3\nviu53dhlx9Z5TaLIJACpV9iXdnAvS2tIWwd0EmzkGWkgOe73ikiJo725z8eTn3EV\nmzpgmqjUUCeOs4wCiPAep5KYH5PJllp+PBygkrjw5dJxIQJBALZ2XjvebA2xzgnu\n6JwfpRdsbwaiNxAfhgCrdyWvm7VPuzFWbFpAvsgWsFlXPvoV2jZxT8N0FVHIiUhC\nxpak2akCQQChwGVjodYg1NlngWH+EfhE7P2ew1wL/e9BIFhITWvN0NcAMwalrV6+\n0jqogp6ziwLi7dajOXu83A5f/VGdCuWnAkAeS/VFt571fyqZF6RkGBUPmJ+u2EyQ\nTsuvXMlB5rDSIFUS0ijXq5yCGNJbY1M/r1U2aQY3jBTmKYgyCXR0GxdRAkATnm9t\nxzpenxKDgGjvVSSkz43vjMiEV9eGMbMjiehyfUsmpgm/XKjqQjuFJtqy8kB2X9yx\nzY4ZmSNRNzuH7cNvAkEAqypT7tg18VCX2fgM7DJueq3UkkzsCR+C+gLOJH7gb8PY\n3x14/MM0aaoNwy/mzoXeQr102xEkco0d0w9/bo5Cew==\n-----END RSA PRIVATE KEY-----"
+      PUBLIC_KEY: "-----BEGIN PUBLIC KEY-----\nMIGeMA0GCSqGSIb3DQEBAQUAA4GMADCBiAKBgHNJkk4KFeUrqs68yjEyadKwMZGO\nyOMojdWIl3Z+VYJVlu9ATVghsKiMTpzuCKFSZGlOKeE+QeLw4eH7Lrbm3NUhOBCF\nd99rESFiakleV18D9O58r3jvtwEOQw1ifcA9i+oBJWXwzjNcMKkwaXbFTIu+Dpx9\nMpfibDEAE7Ph2Co/AgMBAAE=\n-----END PUBLIC KEY-----"
     depends_on:
       db:
         condition: service_healthy
