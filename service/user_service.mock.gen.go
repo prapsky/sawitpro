@@ -9,6 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	generated "github.com/prapsky/sawitpro/generated"
 )
 
 // MockService is a mock of Service interface.
@@ -34,11 +35,26 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 	return m.recorder
 }
 
+// GetProfile mocks base method.
+func (m *MockService) GetProfile(ctx context.Context, token string) (generated.ProfileResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetProfile", ctx, token)
+	ret0, _ := ret[0].(generated.ProfileResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetProfile indicates an expected call of GetProfile.
+func (mr *MockServiceMockRecorder) GetProfile(ctx, token interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProfile", reflect.TypeOf((*MockService)(nil).GetProfile), ctx, token)
+}
+
 // Login mocks base method.
-func (m *MockService) Login(ctx context.Context, input LoginInput) (LoginOutput, error) {
+func (m *MockService) Login(ctx context.Context, input LoginInput) (generated.LoginResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Login", ctx, input)
-	ret0, _ := ret[0].(LoginOutput)
+	ret0, _ := ret[0].(generated.LoginResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -50,10 +66,10 @@ func (mr *MockServiceMockRecorder) Login(ctx, input interface{}) *gomock.Call {
 }
 
 // Register mocks base method.
-func (m *MockService) Register(ctx context.Context, input RegisterInput) (uint64, error) {
+func (m *MockService) Register(ctx context.Context, input RegisterInput) (generated.RegisterResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Register", ctx, input)
-	ret0, _ := ret[0].(uint64)
+	ret0, _ := ret[0].(generated.RegisterResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

@@ -7,6 +7,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/prapsky/sawitpro/common/errors"
 	"github.com/prapsky/sawitpro/entity"
+	"github.com/prapsky/sawitpro/generated"
 	"github.com/prapsky/sawitpro/repository"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -22,8 +23,9 @@ type UserServiceOptions struct {
 }
 
 type Service interface {
-	Register(ctx context.Context, input RegisterInput) (uint64, error)
-	Login(ctx context.Context, input LoginInput) (LoginOutput, error)
+	Register(ctx context.Context, input RegisterInput) (generated.RegisterResponse, error)
+	Login(ctx context.Context, input LoginInput) (generated.LoginResponse, error)
+	GetProfile(ctx context.Context, token string) (generated.ProfileResponse, error)
 }
 
 func NewUserService(opts UserServiceOptions) *UserService {
@@ -49,7 +51,12 @@ type LoginOutput struct {
 	Token  string `json:"token"`
 }
 
-func (u *UserService) Register(ctx context.Context, input RegisterInput) (uint64, error) {
+type GetProfileOutput struct {
+	FullName    string `json:"fullName"`
+	PhoneNumber string `json:"phoneNumber"`
+}
+
+func (u *UserService) Register(ctx context.Context, input RegisterInput) (generated.RegisterResponse, error) {
 	currentTime := time.Now()
 	user := entity.User{
 		PhoneNumber:  input.PhoneNumber,
@@ -60,29 +67,34 @@ func (u *UserService) Register(ctx context.Context, input RegisterInput) (uint64
 
 	account, err := u.repository.FindByPhoneNumber(ctx, input.PhoneNumber)
 	if err != nil {
-		return 0, err
+		return generated.RegisterResponse{}, err
 	}
 
 	if account != nil {
-		return 0, errors.ErrPhoneNumberAlreadyRegisterd
+		return generated.RegisterResponse{}, errors.ErrPhoneNumberAlreadyRegisterd
 	}
 
 	userID, err := u.repository.Insert(ctx, user)
 	if err != nil {
-		return 0, err
+		return generated.RegisterResponse{}, err
 	}
 
-	return userID, nil
+	data := &generated.RegisterResponseData{
+		UserID: &userID,
+	}
+
+	return generated.RegisterResponse{
+		Data: data}, nil
 }
 
-func (u *UserService) Login(ctx context.Context, input LoginInput) (LoginOutput, error) {
+func (u *UserService) Login(ctx context.Context, input LoginInput) (generated.LoginResponse, error) {
 	account, err := u.repository.FindByPhoneNumber(ctx, input.PhoneNumber)
 	if err != nil {
-		return LoginOutput{}, err
+		return generated.LoginResponse{}, err
 	}
 
 	if account == nil {
-		return LoginOutput{}, errors.ErrPhoneNumberNotRegisterd
+		return generated.LoginResponse{}, errors.ErrPhoneNumberNotRegisterd
 	}
 
 	inputAttempt := entity.LoginAttempt{
@@ -94,34 +106,62 @@ func (u *UserService) Login(ctx context.Context, input LoginInput) (LoginOutput,
 		inputAttempt.AttemptedAt = time.Now()
 
 		if errAttempt := u.repository.InsertLoginAttempts(ctx, inputAttempt); errAttempt != nil {
-			return LoginOutput{}, err
+			return generated.LoginResponse{}, err
 		}
 
-		return LoginOutput{}, errors.ErrIncorrectPassword
+		return generated.LoginResponse{}, errors.ErrIncorrectPassword
 	}
 
 	inputAttempt.Success = true
 	inputAttempt.AttemptedAt = time.Now()
 	if errAttempt := u.repository.InsertLoginAttempts(ctx, inputAttempt); errAttempt != nil {
-		return LoginOutput{}, err
+		return generated.LoginResponse{}, err
 	}
 
 	account.SuccessfulLogins += 1
 	account.LastLoginAt = time.Now()
 	if err := u.repository.UpdateSuccessfulLogins(ctx, *account); err != nil {
-		return LoginOutput{}, err
+		return generated.LoginResponse{}, err
 	}
 
 	token, err := u.authService.CreateToken(account)
 	if err != nil {
-		return LoginOutput{}, err
+		return generated.LoginResponse{}, err
 	}
 
-	return LoginOutput{
-		UserID: account.ID,
-		Token:  token}, nil
+	data := &generated.LoginResponseData{
+		Token:  &token,
+		UserID: &account.ID,
+	}
+
+	return generated.LoginResponse{
+		Data: data}, nil
 }
 
 func (u *UserService) comparePasswords(hashedPassword, password string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+}
+
+func (u *UserService) GetProfile(ctx context.Context, token string) (generated.ProfileResponse, error) {
+	userID, err := u.authService.ValidateToken(token)
+	if err != nil {
+		return generated.ProfileResponse{}, err
+	}
+
+	account, err := u.repository.FindByID(ctx, userID)
+	if err != nil {
+		return generated.ProfileResponse{}, err
+	}
+
+	if account == nil {
+		return generated.ProfileResponse{}, errors.ErrPhoneNumberNotRegisterd
+	}
+
+	data := &generated.ProfileResponseData{
+		FullName:    &account.FullName,
+		PhoneNumber: &account.PhoneNumber,
+	}
+
+	return generated.ProfileResponse{
+		Data: data}, nil
 }

@@ -43,6 +43,26 @@ func (r *Repository) FindByPhoneNumber(ctx context.Context, phoneNumber string) 
 	return user, nil
 }
 
+func (r *Repository) FindByID(ctx context.Context, id uint64) (*entity.User, error) {
+	builder := qbUsers.NewFindByIDQueryBuilder(id).Build()
+
+	row := r.db.QueryRowContext(ctx, builder.GetQuery(), builder.GetValues()...)
+	user := &entity.User{}
+	err := row.Scan(
+		&user.FullName,
+		&user.PhoneNumber,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return user, nil
+}
+
 func (r *Repository) UpdateSuccessfulLogins(ctx context.Context, input entity.User) error {
 	builder := qbUsers.NewUpdateSuccessfulLoginsQueryBuilder(input).Build()
 

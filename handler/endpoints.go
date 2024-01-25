@@ -3,11 +3,11 @@ package handler
 import (
 	goerrors "errors"
 	"net/http"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/prapsky/sawitpro/common/errors"
 	"github.com/prapsky/sawitpro/common/response"
-	"github.com/prapsky/sawitpro/generated"
 )
 
 // (POST /register)
@@ -26,7 +26,7 @@ func (s *Server) Register(ctx echo.Context) error {
 		return ctx.JSON(http.StatusBadRequest, response.NewError(err))
 	}
 
-	userID, err := s.service.Register(ctx.Request().Context(), registerInput)
+	registerResponse, err := s.service.Register(ctx.Request().Context(), registerInput)
 	if err != nil {
 		res := response.NewError(err)
 		if goerrors.Is(err, errors.ErrPhoneNumberAlreadyRegisterd) {
@@ -36,12 +36,7 @@ func (s *Server) Register(ctx echo.Context) error {
 		return ctx.JSON(http.StatusInternalServerError, res)
 	}
 
-	data := &generated.RegisterResponseData{
-		UserID: &userID,
-	}
-
-	return ctx.JSON(http.StatusOK, generated.RegisterResponse{
-		Data: data})
+	return ctx.JSON(http.StatusOK, registerResponse)
 }
 
 // (POST /login)
@@ -51,7 +46,7 @@ func (s *Server) Login(ctx echo.Context) error {
 		return ctx.JSON(http.StatusBadRequest, response.NewError(errors.ErrInvalidRequestPayload))
 	}
 
-	loginOutput, err := s.service.Login(ctx.Request().Context(), req.loginInput())
+	loginResponse, err := s.service.Login(ctx.Request().Context(), req.loginInput())
 	if err != nil {
 		res := response.NewError(err)
 		if goerrors.Is(err, errors.ErrPhoneNumberNotRegisterd) {
@@ -61,11 +56,31 @@ func (s *Server) Login(ctx echo.Context) error {
 		return ctx.JSON(http.StatusInternalServerError, response.NewError(err))
 	}
 
-	data := &generated.LoginResponseData{
-		Token:  &loginOutput.Token,
-		UserID: &loginOutput.UserID,
+	return ctx.JSON(http.StatusOK, loginResponse)
+}
+
+// (GET /profile)
+func (s *Server) Profile(ctx echo.Context) error {
+	token := s.getToken(ctx)
+	if token == "" {
+		return ctx.JSON(http.StatusForbidden, response.NewError(errors.ErrEmptyToken))
 	}
 
-	return ctx.JSON(http.StatusOK, generated.LoginResponse{
-		Data: data})
+	profileResponse, err := s.service.GetProfile(ctx.Request().Context(), token)
+	if err != nil {
+		return ctx.JSON(http.StatusForbidden, response.NewError(err))
+	}
+
+	return ctx.JSON(http.StatusOK, profileResponse)
+}
+
+func (s *Server) getToken(ctx echo.Context) string {
+	key := "Bearer "
+	reqToken := ctx.Request().Header.Get("Authorization")
+	if !strings.HasPrefix(reqToken, key) {
+		return ""
+	}
+
+	token := strings.TrimPrefix(reqToken, key)
+	return token
 }

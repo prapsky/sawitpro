@@ -16,6 +16,10 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+const (
+	BearerAuthScopes = "bearerAuth.Scopes"
+)
+
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse struct {
 	Message *string `json:"message,omitempty"`
@@ -36,6 +40,17 @@ type LoginResponse struct {
 type LoginResponseData struct {
 	Token  *string `json:"token,omitempty"`
 	UserID *uint64 `json:"userID,omitempty"`
+}
+
+// ProfileResponse defines model for ProfileResponse.
+type ProfileResponse struct {
+	Data *ProfileResponseData `json:"data,omitempty"`
+}
+
+// ProfileResponseData defines model for ProfileResponseData.
+type ProfileResponseData struct {
+	FullName    *string `json:"fullName,omitempty"`
+	PhoneNumber *string `json:"phoneNumber,omitempty"`
 }
 
 // RegisterRequest defines model for RegisterRequest.
@@ -66,6 +81,9 @@ type ServerInterface interface {
 	// This endpoint is to login to an account.
 	// (POST /login)
 	Login(ctx echo.Context) error
+	// This endpoint is to view user profile.
+	// (GET /profile)
+	Profile(ctx echo.Context) error
 	// This endpoint is to register a new account.
 	// (POST /register)
 	Register(ctx echo.Context) error
@@ -82,6 +100,17 @@ func (w *ServerInterfaceWrapper) Login(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.Login(ctx)
+	return err
+}
+
+// Profile converts echo context to params.
+func (w *ServerInterfaceWrapper) Profile(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.Profile(ctx)
 	return err
 }
 
@@ -123,6 +152,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	}
 
 	router.POST(baseURL+"/login", wrapper.Login)
+	router.GET(baseURL+"/profile", wrapper.Profile)
 	router.POST(baseURL+"/register", wrapper.Register)
 
 }
@@ -130,16 +160,19 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/9xUT0/cPhD9Ktb8fseIbAH1kFsRPSC1VKL0hDh4ndmNaWK74zEUrfLdq3H2j7JkaaUu",
-	"l54w3vGbN++9zAqM74J36DhCtYJoGux0Pn4k8nSDMXgXUS5cals9bxEqpoQFBPIBiS3m8g5j1MtciD91",
-	"F6RuwIAC+DnIv5HJuiX0/fbGzx/QMPQFfPJL627wR8LIAjJGDzrGJ0+1nPfACgiNd3idujnSxO+vNNvN",
-	"Nu5Wa9by93/CBVTwX7kTqVwrVI4gLuXB7ztdrnHH3dh/RzfW7d3pmZ6bl8IVkCLS1eWo+nRWwMJTpxkq",
-	"SNbx+/PdS+sYl0jT5G5waSMjHZR9kdr2Wnc4LftxPdmR+Rtb9lEOOzNZ+aLnEfWWK+sWXsBaa3DzWWV9",
-	"4fPVrbBiyzkB3yKS+or0aA1CAY9I0Xon0TiZncyk0gd0Olio4CxfiSHcZNJlK6nLw/jBVhlJs/XuqoZq",
-	"CCUUQIPvF75+liLjHaPL9TqE1pr8onyI3u12wx9+F0Og8sw1RkM28MB/6N1L80H3zPh0Njs2g3WKJih8",
-	"UDEZgzEuUqtoW1jA+RFZjNfnBIsLXSva6lRATF2n6RkquG1sVOjq4K1jZaNir7KjctBOaWN8cnwiqdPL",
-	"CNVdjgvcC0xJ61wftn+T/DdKwP5WmZh9y+Atc/BiofwjUdgYrLRy+PRaGgQKSXYHVHcrSNRCBQ1zqMqy",
-	"9Ua3jeSjv9++XO0R+7LJTVR67hMrWYdQbHZW7tPf978CAAD//2AZWw9GCAAA",
+	"H4sIAAAAAAAC/9xVQVPbOhD+K5p97+jBIUAe4xsMr1OYlnaATg9MDoq8SURtSV1JQIbxf+9IdpLacYAZ",
+	"wqE9xbF3v/2037erJxC6NFqhchayJ7BijiWPj/8TabpCa7SyGF4oXxR8UiBkjjwmYEgbJCcxhpdoLZ/F",
+	"QHzkpQlxNQYk4BYm/LWOpJpBVa3e6MkdCgdVAp/0TKor/OnRugDSRjfc2gdNeXjugCVg5lrhpS8nSD3f",
+	"nym2Plu7Ws4dD7//Ek4hg3/SdZPSpkNpC+IsJLxc6azBbVdz+geqdt/2hwd8IjYbl4C3SOdnrejhIIGp",
+	"ppI7yMBL5UaH60ypHM6Q+sl9JT2VBb6tER2Q7a3oC9yoOPVFccnLjo8uZCnZR1Q5yce+rnQcsEocDY+P",
+	"RvvDg8Oj0X/Hr7LhFc6kdUhbnfg7wU0eu7XpmsxbBOqibFeoN3Kj5g4tWCVgUXiSbnEd2NYFJsgJ6cS7",
+	"+frfhyX6xfcbSOo9FZDqr+tic+cMVAFYqqkO+YUUuNxgUTf4fH4TTuuki+b6ZpHYNdK9FAgJ3CNZqVWY",
+	"wr3B3iBEaoOKGwkZHMRXQWg3j1zTIgx4bJKu7RJaxZ3U6jyHrJ5/SIBqP53qfBGChFYOVYznxhRSxIz0",
+	"zmq1XsOvXEG1UeOZc7SCpHE1/7p2FYrXekbGw8Fg1wwad/ZQOGHWC4HWTn3BaBWYwOEOWbRvqh4Wpzxn",
+	"tOpTAtaXJacFZHAzl5ahyo2WyjFpmdMsKhoeuGJcCO2V2wsG4zML2W20C4wDTGrqjRb4zbBH/GbjwTsq",
+	"0F3hf44GzdxDdtue+NtxNX5JonuJDyzsIdZIsEUgahba9vlcrrx3GtHuddLTmBWD9xzUjZvkL5nVpcCM",
+	"M4UPz41rtByF5R4d56lobossTQsteDEP/gjWazKfOsS+LH1jGZ9o76L/IFleKrFONa5+BQAA//+aWOs3",
+	"UgsAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

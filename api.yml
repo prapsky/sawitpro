@@ -22,7 +22,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RegisterRequest'
+              $ref: "#/components/schemas/RegisterRequest"
       responses:
         "200":
           description: A successful response
@@ -47,7 +47,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/LoginRequest'
+              $ref: "#/components/schemas/LoginRequest"
       responses:
         "200":
           description: A successful response
@@ -61,7 +61,33 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /profile:
+    get:
+      tags:
+        - User
+      summary: This endpoint is to view user profile.
+      operationId: profile
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfileResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
     ErrorResponse:
       type: object
@@ -113,3 +139,17 @@ components:
         token:
           type: string
           example: 123abc
+    ProfileResponse:
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/ProfileResponseData"
+    ProfileResponseData:
+      type: object
+      properties:
+        fullName:
+          type: string
+          example: Jimi Hendrix
+        phoneNumber:
+          type: string
+          example: +6285612345678
