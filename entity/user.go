@@ -5,9 +5,11 @@ import (
 )
 
 type User struct {
-	ID           uint64
-	PhoneNumber  string
-	FullName     string
-	PasswordHash string
-	CreatedAt    time.Time
+	ID               uint64
+	PhoneNumber      string
+	FullName         string
+	PasswordHash     string
+	SuccessfulLogins uint64
+	CreatedAt        time.Time
+	LastLoginAt      time.Time
 }

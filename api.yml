@@ -18,7 +18,7 @@ paths:
       summary: This endpoint is to register a new account.
       operationId: register
       requestBody:
-        description: Created user object
+        description: Register
         content:
           application/json:
             schema:
@@ -30,20 +30,52 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/RegisterResponse"
-        "404":
-          description: Not found
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /login:
+    post:
+      tags:
+        - User
+      summary: This endpoint is to login to an account.
+      operationId: login
+      requestBody:
+        description: Login
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        "200":
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        "400":
+          description: Bad request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 components:
   schemas:
+    ErrorResponse:
+      type: object
+      nullable: true
+      properties:
+        message:
+          type: string
+          example: Error
     RegisterRequest:
       type: object
       properties:
-        phone_number:
+        phoneNumber:
           type: string
-        full_name:
+        fullName:
           type: string
         password:
           type: string
@@ -59,10 +91,25 @@ components:
           type: integer
           format: uint64
           example: 20
-    ErrorResponse:
+    LoginRequest:
       type: object
-      nullable: true
       properties:
-        message:
+        phoneNumber:
           type: string
-          example: Phone number is below a minimum of 10 characters.
+        password:
+          type: string
+    LoginResponse:
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/LoginResponseData"
+    LoginResponseData:
+      type: object
+      properties:
+        userID:
+          type: integer
+          format: uint64
+          example: 20
+        token:
+          type: string
+          example: 123abc
