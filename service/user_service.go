@@ -26,6 +26,7 @@ type Service interface {
 	Register(ctx context.Context, input RegisterInput) (generated.RegisterResponse, error)
 	Login(ctx context.Context, input LoginInput) (generated.LoginResponse, error)
 	GetProfile(ctx context.Context, token string) (generated.ProfileResponse, error)
+	UpdateProfile(ctx context.Context, token string, input UpdateProfileInput) (generated.UpdateProfileResponse, error)
 }
 
 func NewUserService(opts UserServiceOptions) *UserService {
@@ -56,7 +57,21 @@ type GetProfileOutput struct {
 	PhoneNumber string `json:"phoneNumber"`
 }
 
+type UpdateProfileInput struct {
+	PhoneNumber string
+	FullName    string
+}
+
 func (u *UserService) Register(ctx context.Context, input RegisterInput) (generated.RegisterResponse, error) {
+	account, err := u.repository.FindByPhoneNumber(ctx, input.PhoneNumber)
+	if err != nil {
+		return generated.RegisterResponse{}, err
+	}
+
+	if account != nil {
+		return generated.RegisterResponse{}, errors.ErrPhoneNumberAlreadyRegistered
+	}
+
 	currentTime := time.Now()
 	user := entity.User{
 		PhoneNumber:  input.PhoneNumber,
@@ -65,22 +80,13 @@ func (u *UserService) Register(ctx context.Context, input RegisterInput) (genera
 		CreatedAt:    currentTime,
 	}
 
-	account, err := u.repository.FindByPhoneNumber(ctx, input.PhoneNumber)
-	if err != nil {
-		return generated.RegisterResponse{}, err
-	}
-
-	if account != nil {
-		return generated.RegisterResponse{}, errors.ErrPhoneNumberAlreadyRegisterd
-	}
-
 	userID, err := u.repository.Insert(ctx, user)
 	if err != nil {
 		return generated.RegisterResponse{}, err
 	}
 
 	data := &generated.RegisterResponseData{
-		UserID: &userID,
+		UserID: userID,
 	}
 
 	return generated.RegisterResponse{
@@ -94,7 +100,7 @@ func (u *UserService) Login(ctx context.Context, input LoginInput) (generated.Lo
 	}
 
 	if account == nil {
-		return generated.LoginResponse{}, errors.ErrPhoneNumberNotRegisterd
+		return generated.LoginResponse{}, errors.ErrPhoneNumberNotRegistered
 	}
 
 	inputAttempt := entity.LoginAttempt{
@@ -130,8 +136,8 @@ func (u *UserService) Login(ctx context.Context, input LoginInput) (generated.Lo
 	}
 
 	data := &generated.LoginResponseData{
-		Token:  &token,
-		UserID: &account.ID,
+		Token:  token,
+		UserID: account.ID,
 	}
 
 	return generated.LoginResponse{
@@ -145,7 +151,7 @@ func (u *UserService) comparePasswords(hashedPassword, password string) error {
 func (u *UserService) GetProfile(ctx context.Context, token string) (generated.ProfileResponse, error) {
 	userID, err := u.authService.ValidateToken(token)
 	if err != nil {
-		return generated.ProfileResponse{}, err
+		return generated.ProfileResponse{}, errors.ErrInvalidToken
 	}
 
 	account, err := u.repository.FindByID(ctx, userID)
@@ -154,14 +160,55 @@ func (u *UserService) GetProfile(ctx context.Context, token string) (generated.P
 	}
 
 	if account == nil {
-		return generated.ProfileResponse{}, errors.ErrPhoneNumberNotRegisterd
+		return generated.ProfileResponse{}, errors.ErrPhoneNumberNotRegistered
 	}
 
 	data := &generated.ProfileResponseData{
-		FullName:    &account.FullName,
-		PhoneNumber: &account.PhoneNumber,
+		FullName:    account.FullName,
+		PhoneNumber: account.PhoneNumber,
 	}
 
 	return generated.ProfileResponse{
 		Data: data}, nil
+}
+
+func (u *UserService) UpdateProfile(ctx context.Context, token string, input UpdateProfileInput) (generated.UpdateProfileResponse, error) {
+	userID, err := u.authService.ValidateToken(token)
+	if err != nil {
+		return generated.UpdateProfileResponse{}, errors.ErrInvalidToken
+	}
+
+	account, err := u.repository.FindByID(ctx, userID)
+	if err != nil {
+		return generated.UpdateProfileResponse{}, err
+	}
+
+	if account == nil {
+		return generated.UpdateProfileResponse{}, errors.ErrPhoneNumberNotRegistered
+	}
+
+	checkAccount, err := u.repository.FindByPhoneNumber(ctx, input.PhoneNumber)
+	if err != nil {
+		return generated.UpdateProfileResponse{}, err
+	}
+
+	if checkAccount != nil && input.PhoneNumber != account.PhoneNumber {
+		return generated.UpdateProfileResponse{}, errors.ErrPhoneNumberAlreadyRegistered
+	}
+
+	updateUser := entity.User{
+		ID:          userID,
+		PhoneNumber: input.PhoneNumber,
+		FullName:    input.FullName,
+		UpdatedAt:   time.Now(),
+	}
+
+	if err := u.repository.UpdateByID(ctx, updateUser); err != nil {
+		return generated.UpdateProfileResponse{}, err
+	}
+
+	msg := "Success update"
+
+	return generated.UpdateProfileResponse{
+		Message: &msg}, nil
 }

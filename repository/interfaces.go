@@ -16,4 +16,5 @@ type RepositoryInterface interface {
 	FindByID(ctx context.Context, id uint64) (*entity.User, error)
 	UpdateSuccessfulLogins(ctx context.Context, input entity.User) error
 	InsertLoginAttempts(ctx context.Context, input entity.LoginAttempt) error
+	UpdateByID(ctx context.Context, input entity.User) error
 }

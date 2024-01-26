@@ -19,82 +19,88 @@ type LoginRequest struct {
 	Password    string `json:"password" form:"password" validate:"required"`
 }
 
-func (r RegisterRequest) validatePhoneNumber() error {
+type UpdateProfileRequest struct {
+	PhoneNumber string `json:"phoneNumber" form:"phoneNumber" validate:"required"`
+	FullName    string `json:"fullName" form:"fullName" validate:"required"`
+}
+
+func validatePhoneNumber(phoneNumber string) error {
 	const (
 		minLength   = 10
 		maxLength   = 16
 		idCodeRegex = `^\+62`
 	)
 
-	if len(r.PhoneNumber) < minLength {
+	if len(phoneNumber) < minLength {
 		return errors.ErrPhoneNumberBelowMinimumCharacters
 	}
 
-	if len(r.PhoneNumber) > maxLength {
+	if len(phoneNumber) > maxLength {
 		return errors.ErrPhoneNumberAboveMaximumCharacters
 	}
 
-	if !regexp.MustCompile(idCodeRegex).MatchString(r.PhoneNumber) {
+	if !regexp.MustCompile(idCodeRegex).MatchString(phoneNumber) {
 		return errors.ErrPhoneNumberNotIndonesiaCountryCode
 	}
 
 	return nil
 }
 
-func (r RegisterRequest) validateFullName() error {
+func validateFullName(fullName string) error {
 	const (
 		minLength = 3
 		maxLength = 60
 	)
 
-	if len(r.FullName) < minLength {
+	if len(fullName) < minLength {
 		return errors.ErrFullNameBelowMinimumCharacters
 	}
 
-	if len(r.FullName) > maxLength {
+	if len(fullName) > maxLength {
 		return errors.ErrFullNameAboveMaximumCharacters
 	}
 
 	return nil
 }
 
-func (r RegisterRequest) validatePassword() error {
+func validatePassword(password string) error {
 	const (
 		minLength = 6
 		maxLength = 64
 	)
 
-	if len(r.Password) < minLength {
+	if len(password) < minLength {
 		return errors.ErrPasswordBelowMinimumCharacters
 	}
 
-	if len(r.Password) > maxLength {
+	if len(password) > maxLength {
 		return errors.ErrPasswordAboveMaximumCharacters
 	}
 
-	if !regexp.MustCompile(`[A-Z]`).MatchString(r.Password) ||
-		!regexp.MustCompile(`[0-9]`).MatchString(r.Password) ||
-		!regexp.MustCompile(`[^a-zA-Z0-9]`).MatchString(r.Password) {
+	if !regexp.MustCompile(`[A-Z]`).MatchString(password) ||
+		!regexp.MustCompile(`[0-9]`).MatchString(password) ||
+		!regexp.MustCompile(`[^a-zA-Z0-9]`).MatchString(password) {
 		return errors.ErrPasswordNotContainsSpecialCharacters
 	}
 
 	return nil
 }
 
-func (r RegisterRequest) validate() error {
-	if errPhone := r.validatePhoneNumber(); errPhone != nil {
-		return errPhone
+func (r RegisterRequest) validate() []error {
+	var errs []error
+	if errPhone := validatePhoneNumber(r.PhoneNumber); errPhone != nil {
+		errs = append(errs, errPhone)
 	}
 
-	if errName := r.validateFullName(); errName != nil {
-		return errName
+	if errName := validateFullName(r.FullName); errName != nil {
+		errs = append(errs, errName)
 	}
 
-	if errPass := r.validatePassword(); errPass != nil {
-		return errPass
+	if errPass := validatePassword(r.Password); errPass != nil {
+		errs = append(errs, errPass)
 	}
 
-	return nil
+	return errs
 }
 
 func hashPassword(password string) (string, error) {
@@ -122,5 +128,12 @@ func (l LoginRequest) loginInput() service.LoginInput {
 	return service.LoginInput{
 		PhoneNumber: l.PhoneNumber,
 		Password:    l.Password,
+	}
+}
+
+func (u UpdateProfileRequest) updateProfileInput() service.UpdateProfileInput {
+	return service.UpdateProfileInput{
+		PhoneNumber: u.PhoneNumber,
+		FullName:    u.FullName,
 	}
 }

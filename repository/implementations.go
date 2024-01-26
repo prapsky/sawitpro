@@ -29,6 +29,7 @@ func (r *Repository) FindByPhoneNumber(ctx context.Context, phoneNumber string) 
 	err := row.Scan(
 		&user.ID,
 		&user.FullName,
+		&user.PhoneNumber,
 		&user.PasswordHash,
 		&user.SuccessfulLogins,
 	)
@@ -80,6 +81,19 @@ func (r *Repository) InsertLoginAttempts(ctx context.Context, input entity.Login
 	_, err := r.db.ExecContext(ctx, builder.GetQuery(), builder.GetValues()...)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (r *Repository) UpdateByID(ctx context.Context, input entity.User) error {
+	builder := qbUsers.NewUpdateByIDQueryBuilder(input).Build()
+
+	_, err := r.db.ExecContext(ctx, builder.GetQuery(), builder.GetValues()...)
+	if err != nil {
+		{
+			return nil
+		}
 	}
 
 	return nil

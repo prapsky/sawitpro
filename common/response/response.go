@@ -23,9 +23,15 @@ func NewSuccess(data, meta interface{}) *Success {
 	}
 }
 
-func NewError(err error) generated.ErrorResponse {
-	msg := err.Error()
-	return generated.ErrorResponse{
-		Message: &msg,
+func NewError(errs ...error) generated.ErrorResponse {
+	var errorResponse generated.ErrorResponse
+
+	for _, err := range errs {
+		msg := struct {
+			Message string "json:\"message\""
+		}{Message: err.Error()}
+		errorResponse.Errors = append(errorResponse.Errors, msg)
 	}
+
+	return errorResponse
 }

@@ -82,6 +82,32 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      tags:
+        - User
+      summary: This endpoint is to update user profile.
+      operationId: update-profile
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Update profile
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProfileRequest"
+      responses:
+        "200":
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdateProfileResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 components:
   securitySchemes:
     bearerAuth:
@@ -91,13 +117,25 @@ components:
   schemas:
     ErrorResponse:
       type: object
-      nullable: true
+      required:
+        - errors
       properties:
-        message:
-          type: string
-          example: Error
+        errors:
+          $ref: "#/components/schemas/ErrorResponseData"
+    ErrorResponseData:
+      type: array
+      items:
+        required:
+          - message
+        properties:
+          message:
+            type: string
     RegisterRequest:
       type: object
+      required:
+        - phoneNumber
+        - fullName
+        - password
       properties:
         phoneNumber:
           type: string
@@ -112,6 +150,8 @@ components:
           $ref: "#/components/schemas/RegisterResponseData"
     RegisterResponseData:
       type: object
+      required:
+        - userID
       properties:
         userID:
           type: integer
@@ -119,6 +159,9 @@ components:
           example: 20
     LoginRequest:
       type: object
+      required:
+        - phoneNumber
+        - password
       properties:
         phoneNumber:
           type: string
@@ -131,6 +174,9 @@ components:
           $ref: "#/components/schemas/LoginResponseData"
     LoginResponseData:
       type: object
+      required:
+        - userID
+        - token
       properties:
         userID:
           type: integer
@@ -146,6 +192,9 @@ components:
           $ref: "#/components/schemas/ProfileResponseData"
     ProfileResponseData:
       type: object
+      required:
+        - fullName
+        - phoneNumber
       properties:
         fullName:
           type: string
@@ -153,3 +202,17 @@ components:
         phoneNumber:
           type: string
           example: +6285612345678
+    UpdateProfileRequest:
+      type: object
+      properties:
+        phoneNumber:
+          type: string
+        fullName:
+          type: string
+    UpdateProfileResponse:
+      type: object
+      nullable: true
+      properties:
+        message:
+          type: string
+          example: Success update profile
