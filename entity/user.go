@@ -11,5 +11,6 @@ type User struct {
 	PasswordHash     string
 	SuccessfulLogins uint64
 	CreatedAt        time.Time
+	UpdatedAt        time.Time
 	LastLoginAt      time.Time
 }

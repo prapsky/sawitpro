@@ -8,5 +8,6 @@ const (
 	PasswordHashColumn     = "password_hash"
 	SuccessfulLoginsColumn = "successful_logins"
 	CreatedAtColumn        = "created_at"
+	UpdatedAtColumn        = "updated_at"
 	LastLoginAtColumn      = "last_login_at"
 )

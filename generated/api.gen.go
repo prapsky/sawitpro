@@ -22,13 +22,18 @@ const (
 
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse struct {
-	Message *string `json:"message,omitempty"`
+	Errors ErrorResponseData `json:"errors"`
+}
+
+// ErrorResponseData defines model for ErrorResponseData.
+type ErrorResponseData = []struct {
+	Message string `json:"message"`
 }
 
 // LoginRequest defines model for LoginRequest.
 type LoginRequest struct {
-	Password    *string `json:"password,omitempty"`
-	PhoneNumber *string `json:"phoneNumber,omitempty"`
+	Password    string `json:"password"`
+	PhoneNumber string `json:"phoneNumber"`
 }
 
 // LoginResponse defines model for LoginResponse.
@@ -38,8 +43,8 @@ type LoginResponse struct {
 
 // LoginResponseData defines model for LoginResponseData.
 type LoginResponseData struct {
-	Token  *string `json:"token,omitempty"`
-	UserID *uint64 `json:"userID,omitempty"`
+	Token  string `json:"token"`
+	UserID uint64 `json:"userID"`
 }
 
 // ProfileResponse defines model for ProfileResponse.
@@ -49,15 +54,15 @@ type ProfileResponse struct {
 
 // ProfileResponseData defines model for ProfileResponseData.
 type ProfileResponseData struct {
-	FullName    *string `json:"fullName,omitempty"`
-	PhoneNumber *string `json:"phoneNumber,omitempty"`
+	FullName    string `json:"fullName"`
+	PhoneNumber string `json:"phoneNumber"`
 }
 
 // RegisterRequest defines model for RegisterRequest.
 type RegisterRequest struct {
-	FullName    *string `json:"fullName,omitempty"`
-	Password    *string `json:"password,omitempty"`
-	PhoneNumber *string `json:"phoneNumber,omitempty"`
+	FullName    string `json:"fullName"`
+	Password    string `json:"password"`
+	PhoneNumber string `json:"phoneNumber"`
 }
 
 // RegisterResponse defines model for RegisterResponse.
@@ -67,11 +72,25 @@ type RegisterResponse struct {
 
 // RegisterResponseData defines model for RegisterResponseData.
 type RegisterResponseData struct {
-	UserID *uint64 `json:"userID,omitempty"`
+	UserID uint64 `json:"userID"`
+}
+
+// UpdateProfileRequest defines model for UpdateProfileRequest.
+type UpdateProfileRequest struct {
+	FullName    *string `json:"fullName,omitempty"`
+	PhoneNumber *string `json:"phoneNumber,omitempty"`
+}
+
+// UpdateProfileResponse defines model for UpdateProfileResponse.
+type UpdateProfileResponse struct {
+	Message *string `json:"message,omitempty"`
 }
 
 // LoginJSONRequestBody defines body for Login for application/json ContentType.
 type LoginJSONRequestBody = LoginRequest
+
+// UpdateProfileJSONRequestBody defines body for UpdateProfile for application/json ContentType.
+type UpdateProfileJSONRequestBody = UpdateProfileRequest
 
 // RegisterJSONRequestBody defines body for Register for application/json ContentType.
 type RegisterJSONRequestBody = RegisterRequest
@@ -84,6 +103,9 @@ type ServerInterface interface {
 	// This endpoint is to view user profile.
 	// (GET /profile)
 	Profile(ctx echo.Context) error
+	// This endpoint is to update user profile.
+	// (PATCH /profile)
+	UpdateProfile(ctx echo.Context) error
 	// This endpoint is to register a new account.
 	// (POST /register)
 	Register(ctx echo.Context) error
@@ -111,6 +133,17 @@ func (w *ServerInterfaceWrapper) Profile(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.Profile(ctx)
+	return err
+}
+
+// UpdateProfile converts echo context to params.
+func (w *ServerInterfaceWrapper) UpdateProfile(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.UpdateProfile(ctx)
 	return err
 }
 
@@ -153,6 +186,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 
 	router.POST(baseURL+"/login", wrapper.Login)
 	router.GET(baseURL+"/profile", wrapper.Profile)
+	router.PATCH(baseURL+"/profile", wrapper.UpdateProfile)
 	router.POST(baseURL+"/register", wrapper.Register)
 
 }
@@ -160,19 +194,21 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/9xVQVPbOhD+K5p97+jBIUAe4xsMr1OYlnaATg9MDoq8SURtSV1JQIbxf+9IdpLacYAZ",
-	"wqE9xbF3v/2037erJxC6NFqhchayJ7BijiWPj/8TabpCa7SyGF4oXxR8UiBkjjwmYEgbJCcxhpdoLZ/F",
-	"QHzkpQlxNQYk4BYm/LWOpJpBVa3e6MkdCgdVAp/0TKor/OnRugDSRjfc2gdNeXjugCVg5lrhpS8nSD3f",
-	"nym2Plu7Ws4dD7//Ek4hg3/SdZPSpkNpC+IsJLxc6azBbVdz+geqdt/2hwd8IjYbl4C3SOdnrejhIIGp",
-	"ppI7yMBL5UaH60ypHM6Q+sl9JT2VBb6tER2Q7a3oC9yoOPVFccnLjo8uZCnZR1Q5yce+rnQcsEocDY+P",
-	"RvvDg8Oj0X/Hr7LhFc6kdUhbnfg7wU0eu7XpmsxbBOqibFeoN3Kj5g4tWCVgUXiSbnEd2NYFJsgJ6cS7",
-	"+frfhyX6xfcbSOo9FZDqr+tic+cMVAFYqqkO+YUUuNxgUTf4fH4TTuuki+b6ZpHYNdK9FAgJ3CNZqVWY",
-	"wr3B3iBEaoOKGwkZHMRXQWg3j1zTIgx4bJKu7RJaxZ3U6jyHrJ5/SIBqP53qfBGChFYOVYznxhRSxIz0",
-	"zmq1XsOvXEG1UeOZc7SCpHE1/7p2FYrXekbGw8Fg1wwad/ZQOGHWC4HWTn3BaBWYwOEOWbRvqh4Wpzxn",
-	"tOpTAtaXJacFZHAzl5ahyo2WyjFpmdMsKhoeuGJcCO2V2wsG4zML2W20C4wDTGrqjRb4zbBH/GbjwTsq",
-	"0F3hf44GzdxDdtue+NtxNX5JonuJDyzsIdZIsEUgahba9vlcrrx3GtHuddLTmBWD9xzUjZvkL5nVpcCM",
-	"M4UPz41rtByF5R4d56lobossTQsteDEP/gjWazKfOsS+LH1jGZ9o76L/IFleKrFONa5+BQAA//+aWOs3",
-	"UgsAAA==",
+	"H4sIAAAAAAAC/+RWTY/bNhD9K8K0R2HteDfbQLcEadEN2jTYD/Sw8IGmxhZTiWSG5G4MQ/+9IPW1suh1",
+	"0awPbW6yNZx5fO/NaHbAVaWVRGkNZDswvMCKhcefiRRdo9FKGvR/aFIayQoMr9G/Dk8/Eq4hgx9mQ6pZ",
+	"m2c2SvKeWQZ1nQLhFycIc8juuzzLFOxWI2SgVp+RW6hTmB7OdiAsVmYKp0Jj2CbgbPMYS0JuJvW6wGXd",
+	"V2REbOsL/qY2Ql7jF4fGTktoZsyjojxSIwVdKIkfXbVCOo7haXA65I1x0EI6pELesvKcBqMUvQbPV+rY",
+	"Hlez6i+UQfyvrNKlP/9qcc5WHNIpI84gXb0fRS/mKawVVcxCBk5Ie3kxnBTS4gZpQlabJ22rx0j6RGot",
+	"Svw2mvaSHCYqFjipuHZl+ZFVOGbrg6hE8ivKnMTXGGd7LuoPXi7evL58tTi/eH3505v0iLv60uN8MeKu",
+	"cSOMRTro+afXmKI9UUM8vcBzvTGg/xbd97McFj4aOan5wr6PXfxO58xi78N/pd0xeY4VHSiXrizZyt/T",
+	"ksP08GAe+uDGcY7GJC7kTHSTFNLjOOoUDHJHwm5vvIBNkRUyQnrrbDH8+qUj/MOft5A2XzafqXk71Cqs",
+	"1VD7xEKulT9fCo7d3QJ/8PvVrafAChvg3xmk5AbpQXAP+gHJCCX9NDybn819pNIomRaQwXn4yzvZFgHr",
+	"rPSDNsilGtk8XcwKJa9yyJo5DI0X0Nh3Kt/6IK6kRRnimdal4OHE7LNRcvhw/8NPQWOYcOccDSehbYO/",
+	"qR2M2OgbEC/m85dG0LonAuFtYhpzrF2ZUB+YwsULohjvNhEU71ieUM9TCsZVFaMtZHBbCJOgzLUS0ibC",
+	"JFYlQVH/wGTCOFdO2jNvMLYxvpO9XWDp08w6p2c72GBE/E99J5xMgf0O/u9o0PY9ZPfjjr9f1stjEj0I",
+	"fEz8SO2GTUSg0KS8mKoyGn0nas3oTI+wcjcemafs1fjE/z780n6ZjjjGtzS1W8Hhid7tDSdyzv4SF6Gm",
+	"R3BKu0zWsf/JdO8ETlgi8fG5AR9MR34dCJ5zVLb7RTablYqzsvD+8OZrT+72gP3R+cYkbKWcDf6DtFtD",
+	"Qp16Wf8dAAD//xMVaYi2DwAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

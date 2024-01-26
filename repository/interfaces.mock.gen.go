@@ -94,6 +94,20 @@ func (mr *MockRepositoryInterfaceMockRecorder) InsertLoginAttempts(ctx, input in
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertLoginAttempts", reflect.TypeOf((*MockRepositoryInterface)(nil).InsertLoginAttempts), ctx, input)
 }
 
+// UpdateByID mocks base method.
+func (m *MockRepositoryInterface) UpdateByID(ctx context.Context, input entity.User) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateByID", ctx, input)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateByID indicates an expected call of UpdateByID.
+func (mr *MockRepositoryInterfaceMockRecorder) UpdateByID(ctx, input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateByID", reflect.TypeOf((*MockRepositoryInterface)(nil).UpdateByID), ctx, input)
+}
+
 // UpdateSuccessfulLogins mocks base method.
 func (m *MockRepositoryInterface) UpdateSuccessfulLogins(ctx context.Context, input entity.User) error {
 	m.ctrl.T.Helper()

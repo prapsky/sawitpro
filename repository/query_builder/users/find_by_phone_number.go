@@ -23,6 +23,7 @@ func (qb FindByPhoneNumberQueryBuilder) Build() query_builder.QueryBuilder {
 	builder := sq.Select(
 		consts.IDColumn,
 		consts.FullNameColumn,
+		consts.PhoneNumberColumn,
 		consts.PasswordHashColumn,
 		consts.SuccessfulLoginsColumn,
 	).From(consts.UsersTable).
